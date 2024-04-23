@@ -2,106 +2,77 @@ package model
 
 import (
 	"log"
-	"time"
 
 	"github.com/TeamPentagon/DM-Backend/internal/database"
+	"google.golang.org/protobuf/proto"
 	//"time"
 )
 
 func (s *User) SaveUserData() error {
-	db, err := database.CreateSQLiteDatabase("Database/", "Common", "Shard_0.sqlite")
+	db, err := database.CreateLevelDBDatabase("Database/", "Common", "Shard_0.sqlite")
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
-	str := `
-	CREATE TABLE IF NOT EXISTS USER (
-			UserName VARCHAR(255) PRIMARY KEY ,
-			Password VARCHAR(255) NOT NULL,
-			Email VARCHAR(255) ,
-			ProfilePicUrl TEXT ,
-			AccountTime INTEGER,
-			BirthDate TEXT ,
-			Gender TEXT ,
-			LastEdit INTEGER)
-	`
-	_, err = db.Exec(str)
+	bytes, err := proto.Marshal(s)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+	}
+	err = db.Put([]byte(s.PersonId), bytes, nil)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	statement, err := db.Prepare("INSERT INTO USER (UserName,Password,Email,ProfilePicUrl,AccountTime,BirthDate,Gender,LastEdit )VALUES(?,?,?,?,?,?,?,?)")
-
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = statement.Exec(s.UserName, s.Password, s.Email, s.ProfilePicUrl, s.AccountTime, s.BirthDate, s.Gender, s.LastEdit)
-	if err != nil {
-		panic(err)
-	}
 	return nil
 }
 
 func (g *User) GetUserData(userName string) error {
-	db, err := database.CreateSQLiteDatabase("Database/", "Common", "Shard_0.sqlite")
+	db, err := database.CreateLevelDBDatabase("Database/", "Common", "Shard_0.sqlite")
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
-
-	rows, err := db.Query("select * from USER where UserName = ?", userName)
+	data, err := db.Get([]byte(userName), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		err = rows.Scan(&g.UserName, &g.Password, &g.Email, &g.ProfilePicUrl, &g.AccountTime, &g.BirthDate, &g.Gender, &g.LastEdit)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-	}
-	err = rows.Err()
-
+	err = proto.Unmarshal(data, g)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	return nil
+
 }
 
 // previous data first before calling this
 func (u *User) UpdatedUserData(UserName string) error {
-
-	db, err := database.CreateSQLiteDatabase("Database/", "Common", "Shard_0.sqlite")
+	db, err := database.CreateLevelDBDatabase("Database/", "Common", "Shard_0.sqlite")
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
-
-	u.LastEdit = time.Now().Unix()
-
-	_, err = db.Exec("UPDATE USER SET  LastEdit= ?, Password = ?, Email=?, BirthDate = ? WHERE 	UserName = ? ", u.LastEdit, u.Password, u.Email, u.BirthDate, UserName)
-
+	data, err := db.Get([]byte(UserName), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	err = proto.Unmarshal(data, u)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return nil
 }
 
 func (d *User) DeleteUserData(UserName string) error {
-	db, err := database.CreateSQLiteDatabase("Database/", "Common", "Shard_0.sqlite")
+	db, err := database.CreateLevelDBDatabase("Database/", "Common", "Shard_0.sqlite")
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
-
-	_, err = db.Exec("DELETE FROM  USER WHERE  UserName= ?", UserName)
-
+	data, err := db.Get([]byte(UserName), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = proto.Unmarshal(data, d)
 	if err != nil {
 		log.Fatal(err)
 	}
