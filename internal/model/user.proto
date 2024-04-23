@@ -10,7 +10,7 @@ message User{
         string email = 5;
         string profile_pic_url = 6;
         int64 account_time = 7;
-        string birth_date = 8;
+        int64 birth_date = 8;
         string gender = 9;
         int64 last_edit = 10;
         string phone_number = 11;

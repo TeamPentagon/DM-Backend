@@ -3,6 +3,7 @@ module github.com/TeamPentagon/DM-Backend
 go 1.22.2
 
 require (
+	github.com/davecgh/go-spew v1.1.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/go-sqlite v1.22.0
 	github.com/syndtr/goleveldb v1.0.0
