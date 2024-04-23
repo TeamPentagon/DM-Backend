@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package model;
+option go_package = ".;model";
+
+// Define a message to represent a single chat message
+message Message {
+  string ai_id = 1;
+  string user_id = 2;
+  string content = 3;
+  int64 timestamp = 4; // Unix timestamp in milliseconds
+  string conversation_id = 5;
+  string msg_id = 6;
+}
+
+// Define a message to represent chat history for a conversation
+message ChatHistory {
+  string conversation_id = 1;
+  repeated Message messages = 2;
+}
